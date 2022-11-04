@@ -1,4 +1,4 @@
-package com.nulltwenty.rabobankcsvparser.ui
+package com.nulltwenty.rabobankcsvparser.ui.model
 
 import java.util.Date
 

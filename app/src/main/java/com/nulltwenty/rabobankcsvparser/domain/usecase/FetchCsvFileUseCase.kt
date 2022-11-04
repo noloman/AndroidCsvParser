@@ -8,9 +8,9 @@ import javax.inject.Inject
 
 class FetchCsvFileUseCase @Inject constructor(
     private val repository: CsvFileRepository,
-    @DefaultCoroutineDispatcher private val coroutineDispatcher: CoroutineDispatcher
+    @DefaultCoroutineDispatcher private val defaultCoroutineDispatcher: CoroutineDispatcher
 ) {
-    suspend operator fun invoke() = withContext(coroutineDispatcher) {
+    suspend operator fun invoke() = withContext(defaultCoroutineDispatcher) {
         repository.fetchCsvFile()
     }
 }

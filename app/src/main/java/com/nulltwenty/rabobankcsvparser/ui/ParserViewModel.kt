@@ -4,21 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nulltwenty.rabobankcsvparser.data.api.model.CsvFileModel
 import com.nulltwenty.rabobankcsvparser.domain.usecase.FetchCsvFileUseCase
+import com.nulltwenty.rabobankcsvparser.domain.usecase.ParseCsvFileUseCase
+import com.nulltwenty.rabobankcsvparser.ui.model.UserModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
-class ParserViewModel @Inject constructor(private val csvFileUseCase: FetchCsvFileUseCase) :
-    ViewModel() {
+class ParserViewModel @Inject constructor(
+    private val fetchCsvFileUseCase: FetchCsvFileUseCase,
+    private val parseCsvFileUseCase: ParseCsvFileUseCase
+) : ViewModel() {
     private val _uiState = MutableStateFlow(CsvFileUiState())
     val uiState: StateFlow<CsvFileUiState> = _uiState.asStateFlow()
 
@@ -28,41 +28,33 @@ class ParserViewModel @Inject constructor(private val csvFileUseCase: FetchCsvFi
 
     private fun getCsvFile() = viewModelScope.launch {
         try {
-            csvFileUseCase.invoke()
-                //.cachedIn(this)
-                .collect { csvFileModel ->
-                    _uiState.update { state ->
-                        state.copy(error = null, user = csvFileModel.toUiModel())
-                    }
+            fetchCsvFileUseCase.invoke().collect { inputStream ->
+                _uiState.update { state ->
+                    val userList = parseCsvFileUseCase.invoke(inputStream)?.toUiModel()
+                    state.copy(
+                        error = null, userList = userList
+                    )
                 }
+            }
         } catch (e: Exception) {
             _uiState.update {
                 it.copy(error = e.message)
             }
         }
     }
-
-    private fun parseCsv(inputStream: InputStream): List<CsvFileModel> {
-        val reader = inputStream.bufferedReader()
-        reader.readLine()
-        val dateFormat =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) // 1978-01-02T00:00:00
-        return reader.lineSequence().filter { it.isNotBlank() }.map {
-            val (firstName, surname, issueCount, birthdate, avatarUrl) = it.split(
-                ',', ignoreCase = false
-            )
-            CsvFileModel(
-                firstName.removeSurrounding("\""),
-                surname.removeSurrounding("\""),
-                issueCount.toInt(),
-                dateFormat.parse(birthdate.removeSurrounding("\"")) ?: Date(),
-                avatarUrl.removeSurrounding("\"")
-            )
-        }.toList()
-    }
 }
 
-data class CsvFileUiState(val error: String? = null, val user: UserModel? = null)
+data class CsvFileUiState(val error: String? = null, val userList: List<UserModel>? = null)
 
-fun CsvFileModel.toUiModel(): UserModel =
-    UserModel("$firstName $surname", issueCount, birthdate, avatarUrl)
+fun List<CsvFileModel>.toUiModel(): List<UserModel> = mutableListOf<UserModel>().apply {
+    this@toUiModel.forEach {
+        add(
+            UserModel(
+                fullName = it.firstName + " " + it.surname,
+                issueCount = it.issueCount,
+                birthdate = it.birthdate,
+                avatarUrl = it.avatarUrl
+            )
+        )
+    }
+}.toList()

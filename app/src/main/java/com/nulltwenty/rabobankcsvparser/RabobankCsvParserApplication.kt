@@ -9,10 +9,10 @@ class RabobankCsvParserApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         StrictMode.setThreadPolicy(
-            StrictMode.ThreadPolicy.Builder().detectAll().penaltyDialog().build()
+            StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build()
         )
         StrictMode.setVmPolicy(
-            StrictMode.VmPolicy.Builder().detectAll().penaltyDeath().build()
+            StrictMode.VmPolicy.Builder().detectAll().penaltyLog().build()
         )
     }
 }
