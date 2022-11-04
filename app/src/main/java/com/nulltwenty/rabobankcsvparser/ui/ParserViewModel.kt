@@ -53,7 +53,7 @@ fun List<CsvFileModel>.toUiModel(): List<UserModel> = mutableListOf<UserModel>()
         add(
             UserModel(
                 fullName = it.firstName + " " + it.surname,
-                issueCount = it.issueCount.toString(),
+                issueCount = it.issueCount,
                 birthdate = DateFormat.getDateInstance(
                     DateFormat.SHORT, Locale.getDefault()
                 ).format(it.birthdate),
