@@ -10,6 +10,8 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
+const val defaultDatePattern = "yyyy-MM-dd'T'HH:mm:ss"
+
 class ParseCsvFileUseCase @Inject constructor(
     @DefaultCoroutineDispatcher private val defaultCoroutineDispatcher: CoroutineDispatcher
 ) {
@@ -20,7 +22,7 @@ class ParseCsvFileUseCase @Inject constructor(
         val reader = inputStream?.bufferedReader()
         reader?.readLine()
         val dateFormat =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) // 1978-01-02T00:00:00
+            SimpleDateFormat(defaultDatePattern, Locale.getDefault()) // 1978-01-02T00:00:00
         return reader?.lineSequence()?.filter { it.isNotBlank() }?.map {
             val (firstName, surname, issueCount, birthdate, avatarUrl) = it.split(
                 ',', ignoreCase = false

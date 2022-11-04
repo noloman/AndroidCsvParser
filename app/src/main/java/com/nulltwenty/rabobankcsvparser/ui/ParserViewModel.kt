@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.DateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,8 +53,10 @@ fun List<CsvFileModel>.toUiModel(): List<UserModel> = mutableListOf<UserModel>()
         add(
             UserModel(
                 fullName = it.firstName + " " + it.surname,
-                issueCount = it.issueCount,
-                birthdate = it.birthdate,
+                issueCount = it.issueCount.toString(),
+                birthdate = DateFormat.getDateInstance(
+                    DateFormat.SHORT, Locale.getDefault()
+                ).format(it.birthdate),
                 avatarUrl = it.avatarUrl
             )
         )
