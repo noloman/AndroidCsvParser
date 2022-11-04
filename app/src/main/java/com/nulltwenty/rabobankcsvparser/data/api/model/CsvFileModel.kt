@@ -1,8 +1,8 @@
-package com.nulltwenty.rabobankcsvparser
+package com.nulltwenty.rabobankcsvparser.data.api.model
 
 import java.util.Date
 
-data class UserModel(
+data class CsvFileModel(
     val firstName: String,
     val surname: String,
     val issueCount: Int,
