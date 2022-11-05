@@ -31,7 +31,7 @@ class CsvFileRepositoryImpl @Inject constructor(
                 return ResultOf.Success(body.byteStream())
             }
         }
-        return ResultOf.Error(IOException("Error fetching the CSV file ${response.code()} ${response.message()}"))
+        return ResultOf.Error(IOException("Error fetching the CSV file: ${response.code()} ${response.message()}"))
     }
 }
 

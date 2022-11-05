@@ -10,6 +10,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import org.mockito.kotlin.doSuspendableAnswer
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import retrofit2.Response
 import java.nio.charset.StandardCharsets
@@ -71,18 +72,33 @@ class CsvFileRepositoryTest {
     @Test
     fun `given a CsvFileService when it returns an error response, the repository should return a ResultOf#Error with an exception message`() =
         runTest {
-            val fakeErrorMessage = "There was some error"
+            val fakeErrorMessage = "Error fetching the CSV file"
             csvFileServiceMock = mock {
                 onBlocking { fetchCsvFile() } doSuspendableAnswer {
-                    Response.error(404, fakeErrorMessage.toResponseBody())
+                    Response.error(404, "not found".toResponseBody())
                 }
             }
             sut = CsvFileRepositoryImpl(testDispatcher, csvFileServiceMock)
             sut.fetchCsvFile().collect {
                 when (it) {
-                    is ResultOf.Error -> assertTrue(it.exception.message == fakeErrorMessage)
+                    is ResultOf.Error -> assert(it.exception.message?.contains(fakeErrorMessage) == true)
                     is ResultOf.Success -> fail("This case should never be successful")
                 }
             }
         }
+
+    @Test
+    fun `given a CsvFileService that throws an exception, the repository should return a ResultOf#Error with an exception message`() = runTest {
+        val fakeErrorMessage = "There was some error"
+        csvFileServiceMock = mock {
+            onBlocking { fetchCsvFile() } doThrow Exception(fakeErrorMessage)
+        }
+        sut = CsvFileRepositoryImpl(testDispatcher, csvFileServiceMock)
+        sut.fetchCsvFile().collect {
+            when (it) {
+                is ResultOf.Error -> assertTrue(it.exception.message == fakeErrorMessage)
+                is ResultOf.Success -> fail("This case should never be successful")
+            }
+        }
+    }
 }

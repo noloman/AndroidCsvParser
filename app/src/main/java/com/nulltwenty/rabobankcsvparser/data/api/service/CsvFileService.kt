@@ -6,6 +6,7 @@ import retrofit2.http.GET
 
 interface CsvFileService {
     @GET("main/issues.csv")
+    @Throws(Exception::class)
     suspend fun fetchCsvFile(): Response<ResponseBody>
 
     companion object {
