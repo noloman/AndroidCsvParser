@@ -48,15 +48,7 @@ class ParserViewModel @Inject constructor(
                     when (result) {
                         is ResultOf.Error -> state.copy(error = result.exception.message)
                         is ResultOf.Success -> {
-                            val inputStream = BufferedInputStream(result.data.byteStream())
-                            val byteOutputStream = ByteArrayOutputStream()
-                            inputStream.use { input ->
-                                byteOutputStream.use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-                            val byteInputStream =
-                                ByteArrayInputStream(byteOutputStream.toByteArray())
+                            val byteInputStream = createInputStreamFromResult(result)
                             saveFileUseCase.invoke(result.data)
                             val csvFileModelList = parseCsvFileUseCase.invoke(byteInputStream)
                             state.copy(
@@ -71,6 +63,17 @@ class ParserViewModel @Inject constructor(
                 it.copy(error = e.message)
             }
         }
+    }
+
+    private fun createInputStreamFromResult(result: ResultOf.Success<ResponseBody>): ByteArrayInputStream {
+        val inputStream = BufferedInputStream(result.data.byteStream())
+        val byteOutputStream = ByteArrayOutputStream()
+        inputStream.use { input ->
+            byteOutputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+        return ByteArrayInputStream(byteOutputStream.toByteArray())
     }
 }
 
