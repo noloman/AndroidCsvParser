@@ -20,22 +20,41 @@ class CsvFileRepositoryTest {
     private lateinit var csvFileServiceMock: CsvFileService
 
     @Test
-    fun `given a CsvFileService when it returns an empty successful response, the repository should return an empty string ResultOf#Success`() = runTest {
-        csvFileServiceMock = mock {
-            onBlocking { fetchCsvFile() } doSuspendableAnswer {
-                Response.success("".toResponseBody())
+    fun `given a CsvFileService when it returns an empty successful response, the repository should return an empty string ResultOf#Success`() =
+        runTest {
+            csvFileServiceMock = mock {
+                onBlocking { fetchCsvFile() } doSuspendableAnswer {
+                    Response.success("".toResponseBody())
+                }
             }
-        }
-        sut = CsvFileRepositoryImpl(testDispatcher, csvFileServiceMock)
-        sut.fetchCsvFile().collect { result ->
-            when (result) {
-                is ResultOf.Error -> fail("This case should never be an error")
-                is ResultOf.Success -> {
-                    val bytes = result.data.readBytes()
-                    val text = String(bytes, StandardCharsets.UTF_8)
-                    assertTrue(text.isEmpty())
+            sut = CsvFileRepositoryImpl(testDispatcher, csvFileServiceMock)
+            sut.fetchCsvFile().collect { result ->
+                when (result) {
+                    is ResultOf.Error -> fail("This case should never be an error")
+                    is ResultOf.Success -> {
+                        val bytes = result.data.readBytes()
+                        val text = String(bytes, StandardCharsets.UTF_8)
+                        assertTrue(text.isEmpty())
+                    }
                 }
             }
         }
-    }
+
+    @Test
+    fun `given a CsvFileService when it returns an error response, the repository should return a ResultOf#Error with an exception message`() =
+        runTest {
+            val fakeErrorMessage = "There was some error"
+            csvFileServiceMock = mock {
+                onBlocking { fetchCsvFile() } doSuspendableAnswer {
+                    Response.error(404, fakeErrorMessage.toResponseBody())
+                }
+            }
+            sut = CsvFileRepositoryImpl(testDispatcher, csvFileServiceMock)
+            sut.fetchCsvFile().collect {
+                when (it) {
+                    is ResultOf.Error -> assertTrue(it.exception.message == fakeErrorMessage)
+                    is ResultOf.Success -> fail("This case should never be successful")
+                }
+            }
+        }
 }
