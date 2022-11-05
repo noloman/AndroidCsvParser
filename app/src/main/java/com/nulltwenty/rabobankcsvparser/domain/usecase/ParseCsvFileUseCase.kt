@@ -5,9 +5,6 @@ import com.nulltwenty.rabobankcsvparser.data.di.DefaultCoroutineDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 const val defaultDatePattern = "yyyy-MM-dd'T'HH:mm:ss"
@@ -21,8 +18,6 @@ class ParseCsvFileUseCase @Inject constructor(
     private fun readCsv(inputStream: InputStream?): List<CsvFileModel>? {
         val reader = inputStream?.bufferedReader()
         reader?.readLine()
-        val dateFormat =
-            SimpleDateFormat(defaultDatePattern, Locale.getDefault()) // 1978-01-02T00:00:00
         return reader?.lineSequence()?.filter { it.isNotBlank() }?.map {
             val (firstName, surname, issueCount, birthdate, avatarUrl) = it.split(
                 ',', ignoreCase = false
@@ -31,7 +26,7 @@ class ParseCsvFileUseCase @Inject constructor(
                 firstName.removeSurrounding("\""),
                 surname.removeSurrounding("\""),
                 issueCount.toInt(),
-                dateFormat.parse(birthdate.removeSurrounding("\"")) ?: Date(),
+                birthdate.removeSurrounding("\""),
                 avatarUrl.removeSurrounding("\"")
             )
         }?.toList()
