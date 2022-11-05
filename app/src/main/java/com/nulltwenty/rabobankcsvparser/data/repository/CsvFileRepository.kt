@@ -4,5 +4,5 @@ import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 
 interface CsvFileRepository {
-    suspend fun fetchCsvFile(): Flow<InputStream?>
+    suspend fun fetchCsvFile(): Flow<ResultOf<InputStream>>
 }
