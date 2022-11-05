@@ -1,8 +1,8 @@
 package com.nulltwenty.rabobankcsvparser.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import java.io.InputStream
+import okhttp3.ResponseBody
 
 interface CsvFileRepository {
-    suspend fun fetchCsvFile(): Flow<ResultOf<InputStream>>
+    suspend fun fetchCsvFile(): Flow<ResultOf<ResponseBody>>
 }

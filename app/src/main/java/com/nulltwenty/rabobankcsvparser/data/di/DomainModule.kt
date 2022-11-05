@@ -1,11 +1,14 @@
 package com.nulltwenty.rabobankcsvparser.data.di
 
+import android.content.Context
 import com.nulltwenty.rabobankcsvparser.data.repository.CsvFileRepository
 import com.nulltwenty.rabobankcsvparser.domain.usecase.FetchCsvFileUseCase
 import com.nulltwenty.rabobankcsvparser.domain.usecase.ParseCsvFileUseCase
+import com.nulltwenty.rabobankcsvparser.domain.usecase.SaveFileUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -22,4 +25,10 @@ object DomainModule {
     fun provideParseCsvFileUseCase(
         @DefaultCoroutineDispatcher coroutineDispatcher: CoroutineDispatcher
     ): ParseCsvFileUseCase = ParseCsvFileUseCase(coroutineDispatcher)
+
+    @Provides
+    fun provideSaveFileUseCase(
+        @ApplicationContext context: Context,
+        @DefaultCoroutineDispatcher coroutineDispatcher: CoroutineDispatcher
+    ): SaveFileUseCase = SaveFileUseCase(context, coroutineDispatcher)
 }

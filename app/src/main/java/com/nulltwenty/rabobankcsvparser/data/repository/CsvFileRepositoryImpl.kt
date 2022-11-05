@@ -9,26 +9,25 @@ import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Response
 import java.io.IOException
-import java.io.InputStream
 import javax.inject.Inject
 
 class CsvFileRepositoryImpl @Inject constructor(
     @IoCoroutineDispatcher private val ioCoroutineDispatcher: CoroutineDispatcher,
     private val csvFileService: CsvFileService
 ) : CsvFileRepository {
-    override suspend fun fetchCsvFile(): Flow<ResultOf<InputStream>> =
+    override suspend fun fetchCsvFile(): Flow<ResultOf<ResponseBody>> =
         withContext(ioCoroutineDispatcher) {
             flow {
                 emit(safeApiCall { requestFile() })
             }
         }
 
-    private suspend fun requestFile(): ResultOf<InputStream> {
+    private suspend fun requestFile(): ResultOf<ResponseBody> {
         val response: Response<ResponseBody> = csvFileService.fetchCsvFile()
         if (response.isSuccessful) {
             val body = response.body()
             if (body != null) {
-                return ResultOf.Success(body.byteStream())
+                return ResultOf.Success(body)
             }
         }
         return ResultOf.Error(IOException("Error fetching the CSV file: ${response.code()} ${response.message()}"))
