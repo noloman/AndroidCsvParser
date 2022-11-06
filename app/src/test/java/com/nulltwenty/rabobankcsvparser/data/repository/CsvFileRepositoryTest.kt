@@ -34,7 +34,7 @@ class CsvFileRepositoryTest {
                 when (result) {
                     is ResultOf.Error -> fail("This case should never be an error")
                     is ResultOf.Success -> {
-                        val bytes = result.data.readBytes()
+                        val bytes = result.data.bytes()
                         val text = String(bytes, StandardCharsets.UTF_8)
                         assertTrue(text.isEmpty())
                     }
@@ -61,7 +61,7 @@ class CsvFileRepositoryTest {
                 when (result) {
                     is ResultOf.Error -> fail("This case should never be an error")
                     is ResultOf.Success -> {
-                        val bytes = result.data.readBytes()
+                        val bytes = result.data.bytes()
                         val text = String(bytes, StandardCharsets.UTF_8)
                         assertEquals(text, testString)
                     }
@@ -88,17 +88,18 @@ class CsvFileRepositoryTest {
         }
 
     @Test
-    fun `given a CsvFileService that throws an exception, the repository should return a ResultOf#Error with an exception message`() = runTest {
-        val fakeErrorMessage = "There was some error"
-        csvFileServiceMock = mock {
-            onBlocking { fetchCsvFile() } doThrow Exception(fakeErrorMessage)
-        }
-        sut = CsvFileRepositoryImpl(testDispatcher, csvFileServiceMock)
-        sut.fetchCsvFile().collect {
-            when (it) {
-                is ResultOf.Error -> assertTrue(it.exception.message == fakeErrorMessage)
-                is ResultOf.Success -> fail("This case should never be successful")
+    fun `given a CsvFileService that throws an exception, the repository should return a ResultOf#Error with an exception message`() =
+        runTest {
+            val fakeErrorMessage = "There was some error"
+            csvFileServiceMock = mock {
+                onBlocking { fetchCsvFile() } doThrow Exception(fakeErrorMessage)
+            }
+            sut = CsvFileRepositoryImpl(testDispatcher, csvFileServiceMock)
+            sut.fetchCsvFile().collect {
+                when (it) {
+                    is ResultOf.Error -> assertTrue(it.exception.message == fakeErrorMessage)
+                    is ResultOf.Success -> fail("This case should never be successful")
+                }
             }
         }
-    }
 }

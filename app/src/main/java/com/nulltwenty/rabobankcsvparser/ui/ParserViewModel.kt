@@ -43,17 +43,22 @@ class ParserViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(error = exception.message)
                 }
-            }.collect { result: ResultOf<ResponseBody> ->
-                _uiState.update { state ->
-                    when (result) {
-                        is ResultOf.Error -> state.copy(error = result.exception.message)
-                        is ResultOf.Success -> {
-                            val byteInputStream = createInputStreamFromResult(result)
-                            saveFileUseCase.invoke(result.data)
-                            val csvFileModelList = parseCsvFileUseCase.invoke(byteInputStream)
-                            state.copy(
-                                userList = csvFileModelList?.toUiModel()
-                            )
+            }.collect { result ->
+                when (result) {
+                    is ResultOf.Error -> {
+                        _uiState.update { it.copy(error = result.exception.message) }
+                    }
+                    is ResultOf.Success -> {
+                        val byteInputStream = createInputStreamFromResult(result)
+                        saveFileUseCase.invoke(result.data)
+                        parseCsvFileUseCase.invoke(byteInputStream).catch { exception ->
+                            _uiState.update { state ->
+                                state.copy(error = exception.message)
+                            }
+                        }.collect { csvFileModelList ->
+                            _uiState.update { state ->
+                                state.copy(userList = csvFileModelList.toUiModel())
+                            }
                         }
                     }
                 }
