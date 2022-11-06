@@ -3,9 +3,11 @@ package com.nulltwenty.rabobankcsvparser.ui
 import android.content.Context
 import com.nulltwenty.rabobankcsvparser.data.repository.CsvFileRepository
 import com.nulltwenty.rabobankcsvparser.data.repository.ResultOf
+import com.nulltwenty.rabobankcsvparser.domain.CsvParser
 import com.nulltwenty.rabobankcsvparser.domain.usecase.FetchCsvFileUseCase
 import com.nulltwenty.rabobankcsvparser.domain.usecase.ParseCsvFileUseCase
 import com.nulltwenty.rabobankcsvparser.domain.usecase.SaveFileUseCase
+import com.nulltwenty.rabobankcsvparser.originalCsvString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -30,6 +32,7 @@ class ParserViewModelTest {
     private lateinit var parseCsvFileUseCase: ParseCsvFileUseCase
     private lateinit var fetchCsvFileUseCase: FetchCsvFileUseCase
     private lateinit var saveFileUseCase: SaveFileUseCase
+    private lateinit var csvParser: CsvParser
     private val context: Context = mock()
 
     @Before
@@ -43,19 +46,16 @@ class ParserViewModelTest {
                 flowOf(ResultOf.Success(response))
             }
         }
+        csvParser = CsvParser
         fetchCsvFileUseCase = FetchCsvFileUseCase(mockedCsvFileRepository, testDispatcher)
-        parseCsvFileUseCase = ParseCsvFileUseCase(testDispatcher)
+        parseCsvFileUseCase = ParseCsvFileUseCase(csvParser, testDispatcher)
         saveFileUseCase = SaveFileUseCase(context, testDispatcher)
     }
 
     @Test
     fun `given a repository that returns a valid response, when the VM is instantiated, it should update the UI state with the user list`() =
         runTest {
-            val testString = """"First name","Sur name","Issue count","Date of birth","avatar"
-"Theo","Jansen",5,"1978-01-02T00:00:00","https://api.multiavatar.com/2cdf5db9b4dee297b7.png"
-"Fiona","de Vries",7,"1950-11-12T00:00:00","https://api.multiavatar.com/b9339cb9e7a833cd5e.png"
-"Petra","Boersma",1,"2001-04-20T00:00:00","https://api.multiavatar.com/2672c49d6099f87274.png""""
-            initDependencies(testString.toResponseBody())
+            initDependencies(originalCsvString.toResponseBody())
             sut = ParserViewModel(fetchCsvFileUseCase, parseCsvFileUseCase, saveFileUseCase)
             val uiState = sut.uiState.first()
             assertNotNull(uiState.userList)
@@ -63,7 +63,7 @@ class ParserViewModelTest {
         }
 
     @Test
-    fun `given a repository that returns an invalid response, when the VM is instantiated, it should update the UI state with the user list`() =
+    fun `given a repository that returns an empty response, when the VM is instantiated, it should update the UI state with the user list`() =
         runTest {
             val testString = ""
             initDependencies(testString.toResponseBody())

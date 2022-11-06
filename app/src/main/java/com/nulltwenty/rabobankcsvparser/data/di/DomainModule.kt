@@ -2,6 +2,7 @@ package com.nulltwenty.rabobankcsvparser.data.di
 
 import android.content.Context
 import com.nulltwenty.rabobankcsvparser.data.repository.CsvFileRepository
+import com.nulltwenty.rabobankcsvparser.domain.CsvParser
 import com.nulltwenty.rabobankcsvparser.domain.usecase.FetchCsvFileUseCase
 import com.nulltwenty.rabobankcsvparser.domain.usecase.ParseCsvFileUseCase
 import com.nulltwenty.rabobankcsvparser.domain.usecase.SaveFileUseCase
@@ -23,12 +24,15 @@ object DomainModule {
 
     @Provides
     fun provideParseCsvFileUseCase(
-        @DefaultCoroutineDispatcher coroutineDispatcher: CoroutineDispatcher
-    ): ParseCsvFileUseCase = ParseCsvFileUseCase(coroutineDispatcher)
+        csvParser: CsvParser, @DefaultCoroutineDispatcher coroutineDispatcher: CoroutineDispatcher
+    ): ParseCsvFileUseCase = ParseCsvFileUseCase(csvParser, coroutineDispatcher)
 
     @Provides
     fun provideSaveFileUseCase(
         @ApplicationContext context: Context,
         @DefaultCoroutineDispatcher coroutineDispatcher: CoroutineDispatcher
     ): SaveFileUseCase = SaveFileUseCase(context, coroutineDispatcher)
+
+    @Provides
+    fun provideCsvParser(): CsvParser = CsvParser
 }

@@ -3,7 +3,13 @@ package com.nulltwenty.rabobankcsvparser.domain.usecase
 import com.nulltwenty.rabobankcsvparser.data.api.model.CsvFileModel
 import com.nulltwenty.rabobankcsvparser.data.repository.CsvFileRepository
 import com.nulltwenty.rabobankcsvparser.data.repository.ResultOf
-import com.nulltwenty.rabobankcsvparser.fakeCsvFileContents
+import com.nulltwenty.rabobankcsvparser.domain.CsvParser
+import com.nulltwenty.rabobankcsvparser.missingOneComaInHeaderString
+import com.nulltwenty.rabobankcsvparser.missingOneCommaToSeparateFirstNameAndSurNameString
+import com.nulltwenty.rabobankcsvparser.missingOneQuoteInHeaderString
+import com.nulltwenty.rabobankcsvparser.missingQuotesInHeaderString
+import com.nulltwenty.rabobankcsvparser.originalCsvFileModelList
+import com.nulltwenty.rabobankcsvparser.originalCsvString
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -22,6 +28,7 @@ class ParseCsvFileUseCaseTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var sut: ParseCsvFileUseCase
     private lateinit var repositoryMock: CsvFileRepository
+    private lateinit var csvParser: CsvParser
 
     @Test
     fun `given a CSV file repository with a CSV file with only headers, then it should return an empty list`() =
@@ -34,8 +41,9 @@ class ParseCsvFileUseCaseTest {
                     flowOf(ResultOf.Success(fakeInputStream))
                 }
             }
+            csvParser = CsvParser
 
-            sut = ParseCsvFileUseCase(testDispatcher)
+            sut = ParseCsvFileUseCase(csvParser, testDispatcher)
             val result = sut.invoke(fakeInputStream.byteStream())
             val csvFileModels = result.first()
             assertTrue(csvFileModels.isEmpty())
@@ -52,52 +60,47 @@ class ParseCsvFileUseCaseTest {
                     flowOf(ResultOf.Success(fakeInputStream))
                 }
             }
+            csvParser = CsvParser
 
-            sut = ParseCsvFileUseCase(testDispatcher)
+            sut = ParseCsvFileUseCase(csvParser, testDispatcher)
             val result = sut.invoke(fakeInputStream.byteStream())
             val csvFileModels = result.first()
-            assertTrue(csvFileModels.isEmpty() == true)
+            assertTrue(csvFileModels.isEmpty())
         }
 
     @Test
-    fun `given a CSV file repository with correct data when fetching the CSV file, the use case should throw an exception`() =
+    fun `given a CSV file repository with CORRECT data when fetching the CSV file, the use case should throw an exception`() =
         runTest {
-            val testString = """"First name","Sur name","Issue count","Date of birth","avatar"
-"Theo","Jansen",5,"1978-01-02T00:00:00","https://api.multiavatar.com/2cdf5db9b4dee297b7.png"
-"Fiona","de Vries",7,"1950-11-12T00:00:00","https://api.multiavatar.com/b9339cb9e7a833cd5e.png"
-"Petra","Boersma",1,"2001-04-20T00:00:00","https://api.multiavatar.com/2672c49d6099f87274.png""""
-            val fakeInputStream = testString.toResponseBody()
+            val fakeInputStream = originalCsvString.toResponseBody()
 
             repositoryMock = mock {
                 onBlocking { fetchCsvFile() } doSuspendableAnswer {
                     flowOf(ResultOf.Success(fakeInputStream))
                 }
             }
+            csvParser = CsvParser
 
-            sut = ParseCsvFileUseCase(testDispatcher)
+            sut = ParseCsvFileUseCase(csvParser, testDispatcher)
             val csvFileModelList: Flow<List<CsvFileModel>?> =
                 sut.invoke(fakeInputStream.byteStream())
             val csvFileModels: List<CsvFileModel>? = csvFileModelList.first()
             assertTrue(csvFileModels?.isEmpty() == false)
-            assertEquals(csvFileModels, fakeCsvFileContents)
+            assertEquals(csvFileModels, originalCsvFileModelList)
         }
 
     @Test(expected = Exception::class)
     fun `given a CSV file repository with missing quotes in header when fetching the CSV file it should throw an exception`() =
         runTest {
-            val testString = """First name","Sur name","Issue count","Date of birth","avatar"
-"Theo","Jansen",5,"1978-01-02T00:00:00","https://api.multiavatar.com/2cdf5db9b4dee297b7.png"
-"Fiona","de Vries",7,"1950-11-12T00:00:00","https://api.multiavatar.com/b9339cb9e7a833cd5e.png"
-"Petra","Boersma",1,"2001-04-20T00:00:00","https://api.multiavatar.com/2672c49d6099f87274.png""""
-            val fakeInputStream = testString.toResponseBody()
+            val fakeInputStream = missingQuotesInHeaderString.toResponseBody()
 
             repositoryMock = mock {
                 onBlocking { fetchCsvFile() } doSuspendableAnswer {
                     flowOf(ResultOf.Success(fakeInputStream))
                 }
             }
+            csvParser = CsvParser
 
-            sut = ParseCsvFileUseCase(testDispatcher)
+            sut = ParseCsvFileUseCase(csvParser, testDispatcher)
             val csvFileModelList = sut.invoke(fakeInputStream.byteStream())
             csvFileModelList.first()
         }
@@ -105,19 +108,16 @@ class ParseCsvFileUseCaseTest {
     @Test(expected = Exception::class)
     fun `given a CSV file repository with missing coma in header when fetching the CSV file it should throw an exception`() =
         runTest {
-            val testString = """First name","Sur name","Issue count","Date of birth","avatar"
-"Theo""Jansen",5,"1978-01-02T00:00:00","https://api.multiavatar.com/2cdf5db9b4dee297b7.png"
-"Fiona","de Vries",7,"1950-11-12T00:00:00","https://api.multiavatar.com/b9339cb9e7a833cd5e.png"
-"Petra","Boersma",1,"2001-04-20T00:00:00","https://api.multiavatar.com/2672c49d6099f87274.png""""
-            val fakeInputStream = testString.toResponseBody()
+            val fakeInputStream = missingOneQuoteInHeaderString.toResponseBody()
 
             repositoryMock = mock {
                 onBlocking { fetchCsvFile() } doSuspendableAnswer {
                     flowOf(ResultOf.Success(fakeInputStream))
                 }
             }
+            csvParser = CsvParser
 
-            sut = ParseCsvFileUseCase(testDispatcher)
+            sut = ParseCsvFileUseCase(csvParser, testDispatcher)
             val csvFileModelList = sut.invoke(fakeInputStream.byteStream())
             csvFileModelList.first()
         }
@@ -125,19 +125,16 @@ class ParseCsvFileUseCaseTest {
     @Test(expected = IndexOutOfBoundsException::class)
     fun `given a CSV file repository with missing coma when fetching the CSV file it should throw an exception`() =
         runTest {
-            val testString = """"First name","Sur name","Issue count","Date of birth","avatar"
-"Theo""Jansen",5,"1978-01-02T00:00:00","https://api.multiavatar.com/2cdf5db9b4dee297b7.png"
-"Fiona","de Vries",7,"1950-11-12T00:00:00","https://api.multiavatar.com/b9339cb9e7a833cd5e.png"
-"Petra","Boersma",1,"2001-04-20T00:00:00","https://api.multiavatar.com/2672c49d6099f87274.png""""
-            val fakeInputStream = testString.toResponseBody()
+            val fakeInputStream = missingOneCommaToSeparateFirstNameAndSurNameString.toResponseBody()
 
             repositoryMock = mock {
                 onBlocking { fetchCsvFile() } doSuspendableAnswer {
                     flowOf(ResultOf.Success(fakeInputStream))
                 }
             }
+            csvParser = CsvParser
 
-            sut = ParseCsvFileUseCase(testDispatcher)
+            sut = ParseCsvFileUseCase(csvParser, testDispatcher)
             val csvFileModelList = sut.invoke(fakeInputStream.byteStream())
             csvFileModelList.first()
         }
@@ -145,19 +142,16 @@ class ParseCsvFileUseCaseTest {
     @Test(expected = Exception::class)
     fun `given a CSV file repository with missing comma to separate fields in header when fetching the CSV file it should throw an exception`() =
         runTest {
-            val testString = """"First name""Sur name","Issue count","Date of birth","avatar"
-"Theo","Jansen",5,"1978-01-02T00:00:00","https://api.multiavatar.com/2cdf5db9b4dee297b7.png"
-"Fiona","de Vries",7,"1950-11-12T00:00:00","https://api.multiavatar.com/b9339cb9e7a833cd5e.png"
-"Petra","Boersma",1,"2001-04-20T00:00:00","https://api.multiavatar.com/2672c49d6099f87274.png""""
-            val fakeInputStream = testString.toResponseBody()
+            val fakeInputStream = missingOneComaInHeaderString.toResponseBody()
 
             repositoryMock = mock {
                 onBlocking { fetchCsvFile() } doSuspendableAnswer {
                     flowOf(ResultOf.Success(fakeInputStream))
                 }
             }
+            csvParser = CsvParser
 
-            sut = ParseCsvFileUseCase(testDispatcher)
+            sut = ParseCsvFileUseCase(csvParser, testDispatcher)
             val csvFileModelList = sut.invoke(fakeInputStream.byteStream())
             csvFileModelList.first()
         }
