@@ -14,7 +14,7 @@ class SaveFileUseCase @Inject constructor(
     private val context: Context,
     @DefaultCoroutineDispatcher private val defaultCoroutineDispatcher: CoroutineDispatcher
 ) {
-    suspend operator fun invoke(body: ResponseBody): Unit =
+    suspend operator fun invoke(body: ResponseBody) =
         withContext(defaultCoroutineDispatcher) {
             saveFile(body)
         }
