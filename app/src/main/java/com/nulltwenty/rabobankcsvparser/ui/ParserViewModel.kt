@@ -50,7 +50,7 @@ class ParserViewModel @Inject constructor(
                     }
                     is ResultOf.Success -> {
                         val byteInputStream = createInputStreamFromResult(result)
-                        saveFileUseCase.invoke(result.data)
+                        saveFile(result)
                         parseCsvFileUseCase.invoke(byteInputStream).catch { exception ->
                             _uiState.update { state ->
                                 state.copy(error = exception.message)
@@ -68,6 +68,10 @@ class ParserViewModel @Inject constructor(
                 it.copy(error = e.message)
             }
         }
+    }
+
+    private suspend fun saveFile(result: ResultOf.Success<ResponseBody>) {
+        saveFileUseCase.invoke(result.data)
     }
 
     private fun createInputStreamFromResult(result: ResultOf.Success<ResponseBody>): ByteArrayInputStream {
