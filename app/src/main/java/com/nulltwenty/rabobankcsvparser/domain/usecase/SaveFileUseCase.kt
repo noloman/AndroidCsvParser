@@ -14,12 +14,13 @@ class SaveFileUseCase @Inject constructor(
     private val context: Context,
     @DefaultCoroutineDispatcher private val defaultCoroutineDispatcher: CoroutineDispatcher
 ) {
-    suspend operator fun invoke(body: ResponseBody) =
-        withContext(defaultCoroutineDispatcher) {
-            saveFile(body)
-        }
+    suspend operator fun invoke(
+        body: ResponseBody, path: String? = null
+    ) = withContext(defaultCoroutineDispatcher) {
+        saveFile(body, path)
+    }
 
-    private fun saveFile(body: ResponseBody?) {
+    private fun saveFile(body: ResponseBody?, path: String?) {
         if (body == null) {
             return
         }
@@ -27,8 +28,7 @@ class SaveFileUseCase @Inject constructor(
         var input: InputStream? = null
         try {
             input = body.byteStream()
-            val path = context.filesDir.path + "/issues.csv"
-            val fos = FileOutputStream(path)
+            val fos = FileOutputStream(path ?: (context.filesDir.path + "/issues.csv"))
             fos.use { output ->
                 val buffer = ByteArray(4 * 1024) // or other buffer size
                 var read: Int
