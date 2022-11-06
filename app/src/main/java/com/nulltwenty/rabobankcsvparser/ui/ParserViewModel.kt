@@ -64,8 +64,8 @@ class ParserViewModel @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            _uiState.update {
-                it.copy(error = e.message)
+            _uiState.update { state ->
+                state.copy(error = e.message ?: "Unexpected error happened")
             }
         }
     }
