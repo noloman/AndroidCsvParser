@@ -1,7 +1,6 @@
 package com.nulltwenty.rabobankcsvparser.ui
 
 import android.content.Context
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.nulltwenty.rabobankcsvparser.data.repository.CsvFileRepository
 import com.nulltwenty.rabobankcsvparser.data.repository.ResultOf
 import com.nulltwenty.rabobankcsvparser.domain.usecase.FetchCsvFileUseCase
@@ -19,7 +18,6 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
@@ -33,9 +31,6 @@ class ParserViewModelTest {
     private lateinit var fetchCsvFileUseCase: FetchCsvFileUseCase
     private lateinit var saveFileUseCase: SaveFileUseCase
     private val context: Context = mock()
-
-    @get:Rule
-    val instantExecutorRule = InstantTaskExecutorRule()
 
     @Before
     fun setUp() {
