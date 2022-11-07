@@ -1,5 +1,6 @@
 package com.nulltwenty.rabobankcsvparser.ui
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nulltwenty.rabobankcsvparser.data.api.model.CsvFileModel
@@ -21,8 +22,11 @@ import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+
+const val datePattern = "EEEE dd-MM-yyyy HH:mm:ss"
 
 @HiltViewModel
 class ParserViewModel @Inject constructor(
@@ -89,16 +93,25 @@ class ParserViewModel @Inject constructor(
 data class CsvFileUiState(val error: String? = null, val userList: List<UserModel>? = null)
 
 private fun List<CsvFileModel>.toUiModel(): List<UserModel> = mutableListOf<UserModel>().apply {
-    this@toUiModel.forEach {
+    this@toUiModel.forEach { csvFileModel ->
         add(
             UserModel(
-                fullName = it.firstName + " " + it.surname,
-                issueCount = it.issueCount,
-                birthdate = SimpleDateFormat(
-                    defaultDatePattern, Locale.getDefault()
-                ).parse(it.birthdate) ?: throw Exception("There was a problem parsing a date"),
-                avatarUrl = it.avatarUrl
+                fullName = csvFileModel.firstName + " " + csvFileModel.surname,
+                issueCount = csvFileModel.issueCount,
+                birthdate = csvFileModel.birthdate.formatBirthdateString(),
+                avatarUrl = csvFileModel.avatarUrl
             )
         )
     }
 }.toList()
+
+@VisibleForTesting fun String.formatBirthdateString(): String {
+    val originalSimpleDateFormat = SimpleDateFormat(
+        defaultDatePattern, Locale.getDefault()
+    )
+    val newSimpleDateFormat = SimpleDateFormat(datePattern, Locale.getDefault())
+    val oldDate: Date = originalSimpleDateFormat.parse(this)
+        ?: throw Exception("There was a problem parsing a date")
+    return newSimpleDateFormat.format(oldDate)
+        ?: throw Exception("There was a problem parsing a date")
+}

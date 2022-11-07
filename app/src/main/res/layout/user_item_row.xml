@@ -55,7 +55,7 @@
                 android:id="@+id/birthdate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/date_of_birth"
+                android:text="@string/birthdate"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/issueCount"

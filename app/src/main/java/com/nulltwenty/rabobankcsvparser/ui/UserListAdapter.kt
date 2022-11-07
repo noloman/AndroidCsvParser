@@ -19,7 +19,7 @@ class UserListAdapter : ListAdapter<UserModel, UserListAdapter.UserViewHolder>(U
                 name.text =
                     String.format(binding.root.resources.getString(R.string.name), user.fullName)
                 birthdate.text = String.format(
-                    binding.root.resources.getString(R.string.date_of_birth), user.birthdate
+                    binding.root.resources.getString(R.string.birthdate), user.birthdate
                 )
                 issueCount.text = String.format(
                     binding.root.resources.getString(R.string.issue_count), user.issueCount

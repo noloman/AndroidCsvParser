@@ -14,7 +14,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-
 @HiltAndroidTest
 @UninstallModules(DataModule::class)
 class MainActivityTest {
@@ -31,10 +30,29 @@ class MainActivityTest {
     }
 
     @Test
-    fun givenAFakeRepositoryWithSameData_whenTheRecyclerViewIsShown_itShouldShowCompleteInformation() {
-        checkPresenceOf(0, com.nulltwenty.rabobankcsvparser.R.id.name, "Name: Theo Jansen")
-        checkPresenceOf(1, com.nulltwenty.rabobankcsvparser.R.id.name, "Name: Fiona de Vries")
-        checkPresenceOf(2, com.nulltwenty.rabobankcsvparser.R.id.name, "Name: Petra Boersma")
+    fun givenAFakeRepositoryWithSameData_whenTheRecyclerViewIsShown_itShouldShowTheFullNameOfEachUser() {
+        checkPresenceOf(
+            0,
+            com.nulltwenty.rabobankcsvparser.R.id.name,
+            ApplicationProvider.getApplicationContext<Context>()
+                .getString(com.nulltwenty.rabobankcsvparser.R.string.name, "Theo Jansen")
+        )
+        checkPresenceOf(
+            1,
+            com.nulltwenty.rabobankcsvparser.R.id.name,
+            ApplicationProvider.getApplicationContext<Context>()
+                .getString(com.nulltwenty.rabobankcsvparser.R.string.name, "Fiona de Vries")
+        )
+        checkPresenceOf(
+            2,
+            com.nulltwenty.rabobankcsvparser.R.id.name,
+            ApplicationProvider.getApplicationContext<Context>()
+                .getString(com.nulltwenty.rabobankcsvparser.R.string.name, "Petra Boersma")
+        )
+    }
+
+    @Test
+    fun givenAFakeRepositoryWithSameData_whenTheRecyclerViewIsShown_itShouldShowTheIssueCountOfEachUser() {
         checkPresenceOf(
             0,
             com.nulltwenty.rabobankcsvparser.R.id.issueCount,
@@ -52,6 +70,37 @@ class MainActivityTest {
             com.nulltwenty.rabobankcsvparser.R.id.issueCount,
             ApplicationProvider.getApplicationContext<Context>()
                 .getString(com.nulltwenty.rabobankcsvparser.R.string.issue_count, 1)
+        )
+    }
+
+    @Test
+    fun givenAFakeRepositoryWithSameData_whenTheRecyclerViewIsShown_itShouldShowTheBirthdateOfEachUser() {
+        checkPresenceOf(
+            0,
+            com.nulltwenty.rabobankcsvparser.R.id.birthdate,
+            ApplicationProvider.getApplicationContext<Context>()
+                .getString(
+                    com.nulltwenty.rabobankcsvparser.R.string.birthdate,
+                    "1978-01-02T00:00:00".formatBirthdateString()
+                )
+        )
+        checkPresenceOf(
+            1,
+            com.nulltwenty.rabobankcsvparser.R.id.birthdate,
+            ApplicationProvider.getApplicationContext<Context>()
+                .getString(
+                    com.nulltwenty.rabobankcsvparser.R.string.birthdate,
+                    "1950-11-12T00:00:00".formatBirthdateString()
+                )
+        )
+        checkPresenceOf(
+            2,
+            com.nulltwenty.rabobankcsvparser.R.id.birthdate,
+            ApplicationProvider.getApplicationContext<Context>()
+                .getString(
+                    com.nulltwenty.rabobankcsvparser.R.string.birthdate,
+                    "2001-04-20T00:00:00".formatBirthdateString()
+                )
         )
     }
 
