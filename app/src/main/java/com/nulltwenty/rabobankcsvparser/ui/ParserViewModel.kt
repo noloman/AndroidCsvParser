@@ -11,22 +11,17 @@ import com.nulltwenty.rabobankcsvparser.domain.usecase.SaveFileUseCase
 import com.nulltwenty.rabobankcsvparser.domain.usecase.defaultDatePattern
 import com.nulltwenty.rabobankcsvparser.ui.model.UserModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import javax.inject.Inject
 
-const val datePattern = "EEEE dd-MM-yyyy HH:mm:ss"
+const val datePattern = "EEEE dd-MM-yyyy"
 
 @HiltViewModel
 class ParserViewModel @Inject constructor(
