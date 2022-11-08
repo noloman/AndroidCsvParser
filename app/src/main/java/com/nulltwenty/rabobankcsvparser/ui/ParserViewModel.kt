@@ -18,9 +18,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
-import java.io.BufferedInputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,19 +49,40 @@ class ParserViewModel @Inject constructor(
             }.collect { result ->
                 when (result) {
                     is ResultOf.Error -> {
+                        when (result.exception) {
+                            is IOException -> {
+                                val byteInputStream: InputStream? = saveAndReadFileFromStorage()
+                                if (byteInputStream != null) {
+                                    parseCsvFileUseCase.invoke(byteInputStream).catch { exception ->
+                                        _uiState.update { state ->
+                                            state.copy(error = exception.message)
+                                        }
+                                    }.collect { csvFileModelList ->
+                                        _uiState.update { state ->
+                                            state.copy(userList = csvFileModelList.toUiModel())
+                                        }
+                                    }
+                                } else {
+                                    TODO("Error")
+                                }
+                            }
+                        }
                         _uiState.update { it.copy(error = result.exception.message) }
                     }
                     is ResultOf.Success -> {
-                        val byteInputStream = createInputStreamFromResult(result)
-                        saveFile(result)
-                        parseCsvFileUseCase.invoke(byteInputStream).catch { exception ->
-                            _uiState.update { state ->
-                                state.copy(error = exception.message)
+                        val byteInputStream: InputStream? = saveAndReadFileFromStorage(result)
+                        if (byteInputStream != null) {
+                            parseCsvFileUseCase.invoke(byteInputStream).catch { exception ->
+                                _uiState.update { state ->
+                                    state.copy(error = exception.message)
+                                }
+                            }.collect { csvFileModelList ->
+                                _uiState.update { state ->
+                                    state.copy(userList = csvFileModelList.toUiModel())
+                                }
                             }
-                        }.collect { csvFileModelList ->
-                            _uiState.update { state ->
-                                state.copy(userList = csvFileModelList.toUiModel())
-                            }
+                        } else {
+                            TODO("Error")
                         }
                     }
                 }
@@ -74,20 +94,8 @@ class ParserViewModel @Inject constructor(
         }
     }
 
-    private suspend fun saveFile(result: ResultOf.Success<ResponseBody>) {
+    private suspend fun saveAndReadFileFromStorage(result: ResultOf.Success<ResponseBody>): InputStream? =
         saveFileUseCase.invoke(result.data)
-    }
-
-    private fun createInputStreamFromResult(result: ResultOf.Success<ResponseBody>): ByteArrayInputStream {
-        val inputStream = BufferedInputStream(result.data.byteStream())
-        val byteOutputStream = ByteArrayOutputStream()
-        inputStream.use { input ->
-            byteOutputStream.use { output ->
-                input.copyTo(output)
-            }
-        }
-        return ByteArrayInputStream(byteOutputStream.toByteArray())
-    }
 }
 
 data class CsvFileUiState(val error: String? = null, val userList: List<UserModel>? = null)
@@ -105,7 +113,8 @@ private fun List<CsvFileModel>.toUiModel(): List<UserModel> = mutableListOf<User
     }
 }.toList()
 
-@VisibleForTesting fun String.formatBirthdateString(): String {
+@VisibleForTesting
+fun String.formatBirthdateString(): String {
     val originalSimpleDateFormat = SimpleDateFormat(
         defaultDatePattern, Locale.getDefault()
     )
